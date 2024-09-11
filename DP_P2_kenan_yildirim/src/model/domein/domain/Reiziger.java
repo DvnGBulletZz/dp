@@ -1,4 +1,4 @@
-package hu.nl.ovchip.domein;
+package model.domein.domain;
 
 import java.sql.Date;
 
@@ -58,6 +58,7 @@ public class Reiziger{
         this.geboortedatum = geboortedatum;
     }
 
+   
     public String toString() {
         return String.format("Reiziger{id=%d, voorletters='%s', tussenvoegsel='%s', achternaam='%s', geboortedatum=%s}",
                 id, voorletters, tussenvoegsel, achternaam, geboortedatum);

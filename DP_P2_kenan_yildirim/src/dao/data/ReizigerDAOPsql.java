@@ -1,4 +1,4 @@
-package DAO;
+package dao.data;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import hu.nl.ovchip.domein.Reiziger;
+import model.domein.domain.Reiziger;
 
 public class ReizigerDAOPsql implements ReizigerDAO {
     private Connection connection;
@@ -17,7 +17,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     }
 
     @Override
-    public void create(Reiziger reiziger) throws SQLException {
+    public void save(Reiziger reiziger) throws SQLException {
         String sql = "INSERT INTO reiziger (reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, reiziger.getId());
@@ -26,11 +26,12 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             stmt.setString(4, reiziger.getAchternaam());
             stmt.setDate(5, reiziger.getGeboortedatum());
             stmt.executeUpdate();
+            stmt.close();
         }
     }
 
     @Override
-    public Reiziger read(int id) throws SQLException {
+    public Reiziger findById(int id) throws SQLException {
         String sql = "SELECT * FROM reiziger WHERE reiziger_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -44,6 +45,27 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                         rs.getDate("geboortedatum")
                 );
             }
+            stmt.close();
+        }
+        return null;
+    }
+
+
+    public Reiziger findByGbdatum(Date gbDatum) throws SQLException {
+        String sql = "SELECT * FROM reiziger WHERE geboortedatum = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDate(1, gbDatum);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Reiziger(
+                        rs.getInt("reiziger_id"),
+                        rs.getString("voorletters"),
+                        rs.getString("tussenvoegsel"),
+                        rs.getString("achternaam"),
+                        rs.getDate("geboortedatum")
+                );
+            }
+            stmt.close();
         }
         return null;
     }
@@ -58,7 +80,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             stmt.setDate(4, reiziger.getGeboortedatum());
             stmt.setInt(5, reiziger.getId());
             stmt.executeUpdate();
+            stmt.close();
         }
+        
     }
 
     @Override
@@ -67,6 +91,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
+            stmt.close();
         }
     }
 
@@ -85,6 +110,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                         rs.getDate("geboortedatum")
                 ));
             }
+            stmt.close();
         }
         return reizigers;
     }
