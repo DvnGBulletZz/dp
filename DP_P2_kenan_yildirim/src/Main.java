@@ -49,8 +49,9 @@ public class Main {
         // 3. Test update
         sietske.setAchternaam("De Vries");
         rdao.update(sietske);
-        Reiziger updatedReiziger = rdao.findByGbdatum(Date.valueOf(gbdatum));
-        System.out.println("[Test] Na ReizigerDAO.update() gewijzigd naar: " + updatedReiziger);
+        List<Reiziger> reizigersList = rdao.findByGbdatum(Date.valueOf(gbdatum));
+        
+        System.out.println("[Test] Na ReizigerDAO.update() gewijzigd naar: " + reizigersList);
         System.out.println();
 
         // 4. Test delete

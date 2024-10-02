@@ -1,17 +1,3 @@
-# Xojo (formerly REALbasic and Real Studio)
-
-Builds*
-*.debug
-*.debug.app
-Debug*.exe
-Debug*/Debug*.exe
-Debug*/Debug*\ Libs
-*.rbuistate
-*.xojo_uistate
-*.obsolete*'
-
-
-
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -50,6 +36,3 @@ build/
 
 ### Mac OS ###
 .DS_Store
-
-### Configurations ###
-config.properties

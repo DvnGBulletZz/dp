@@ -6,10 +6,10 @@ import java.sql.Date;
 import model.domein.domain.Reiziger;
 
 public interface ReizigerDAO {
-    void save(Reiziger reiziger) throws SQLException;
+    boolean save(Reiziger reiziger) throws SQLException;
     Reiziger findById(int id) throws SQLException;
     List<Reiziger> findByGbdatum(Date gbDatum) throws SQLException;
-    void update(Reiziger reiziger) throws SQLException;
-    void delete(int id) throws SQLException;
+    boolean update(Reiziger reiziger) throws SQLException;
+    boolean delete(Reiziger reiziger) throws SQLException;
     List<Reiziger> findAll() throws SQLException;
 }

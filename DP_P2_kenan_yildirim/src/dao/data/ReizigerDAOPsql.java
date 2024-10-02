@@ -45,29 +45,35 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                         rs.getDate("geboortedatum")
                 );
             }
+            rs.close();
             stmt.close();
         }
+        
+        
         return null;
     }
 
 
-    public Reiziger findByGbdatum(Date gbDatum) throws SQLException {
+    public List<Reiziger> findByGbdatum(Date gbDatum) throws SQLException {
+        List<Reiziger> reizigers = new ArrayList<>();
         String sql = "SELECT * FROM reiziger WHERE geboortedatum = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setDate(1, gbDatum);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return new Reiziger(
+
+            while (rs.next()) {
+                reizigers.add(new Reiziger(
                         rs.getInt("reiziger_id"),
                         rs.getString("voorletters"),
                         rs.getString("tussenvoegsel"),
                         rs.getString("achternaam"),
                         rs.getDate("geboortedatum")
-                );
+                ));
             }
+            rs.close();
             stmt.close();
-        }
-        return null;
+            return reizigers;
+        }        
     }
 
     @Override
@@ -110,6 +116,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                         rs.getDate("geboortedatum")
                 ));
             }
+            rs.close();
             stmt.close();
         }
         return reizigers;
