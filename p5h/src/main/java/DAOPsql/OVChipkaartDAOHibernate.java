@@ -81,6 +81,7 @@ public class OVChipkaartDAOHibernate implements OVChipkaartDAO {
                 System.out.println("Transaction is not active. Starting a new transaction.");
                 tx = session.beginTransaction();
             }
+
             session.remove(ovChipkaart);
             if (tx != null) {
                 tx.commit();

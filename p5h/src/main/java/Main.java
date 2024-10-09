@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.ArrayList;
 import java.util.List;
 import DAO.ProductDAO;
 import DAOPsql.ProductDAOPsql;
@@ -29,72 +30,56 @@ public class Main {
     public static void main(String[] args) throws SQLException {
         System.out.println("Hello world");
 
-        try {
+//        try {
+//
+//            sessionFactory = new Configuration().configure().buildSessionFactory();
+//
+//            Session session = sessionFactory.openSession();
+//
+//            // Create DAO's
+//            AdresDAO adresDAO = new AdresDAOHibernate(session);
+//            ProductDAO productDAO = new ProductDAOHibernate(session);
+//            OVChipkaartDAO ovChipkaartDAO = new OVChipkaartDAOHibernate(session);
+//            ReizigerDAO reizigerDAO = new ReizigerDAOHibernate(session, adresDAO, ovChipkaartDAO);
+//
+//            System.out.println("---- Test DAO's ----");
+//            // Test DAO's
+//            testDAOs(reizigerDAO, ovChipkaartDAO, productDAO);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (sessionFactory != null) {
+//                sessionFactory.close();  // Always close session after work is done
+//            }
+//            // Do not close sessionFactory here if your app is not finished
+//            // sessionFactory.close();
+//        }
 
-            sessionFactory = new Configuration().configure().buildSessionFactory();
 
-            Session session = sessionFactory.openSession();
 
-            // Create DAO's
-            AdresDAO adresDAO = new AdresDAOHibernate(session);
-            ProductDAO productDAO = new ProductDAOHibernate(session);
-            OVChipkaartDAO ovChipkaartDAO = new OVChipkaartDAOHibernate(session);
-            ReizigerDAO reizigerDAO = new ReizigerDAOHibernate(session, adresDAO, ovChipkaartDAO);
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
 
-            System.out.println("---- Test DAO's ----");
-            // Test DAO's
+            AdresDAO adresDAO = new AdresDAOPsql(connection);
+            OVChipkaartDAO ovChipkaartDAO = new OVChipkaartDAOPsql(connection);
+            ReizigerDAO reizigerDAO = new ReizigerDAOPsql(connection, adresDAO, ovChipkaartDAO);
+            ovChipkaartDAO.setReizigerDAO(reizigerDAO);
+            adresDAO.setReizigerDAO(reizigerDAO);
+            ProductDAO productDAO = new ProductDAOPsql(connection);
+            ovChipkaartDAO.setProductDAO(productDAO);
+
             testDAOs(reizigerDAO, ovChipkaartDAO, productDAO);
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            if (sessionFactory != null) {
-                sessionFactory.close();  // Always close session after work is done
-            }
-            // Do not close sessionFactory here if your app is not finished
-            // sessionFactory.close();
         }
-
-
-
-//        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            // Create DAO instances
-//            AdresDAO adresDAO = new AdresDAOPsql(connection);
-//            OVChipkaartDAO ovChipkaartDAO = new OVChipkaartDAOPsql(connection);
-//            ReizigerDAO reizigerDAO = new ReizigerDAOPsql(connection, adresDAO, ovChipkaartDAO);
-//            ovChipkaartDAO.setReizigerDAO(reizigerDAO);
-//            adresDAO.setReizigerDAO(reizigerDAO);
-//            ProductDAO productDAO = new ProductDAOPsql(connection);
-//            ovChipkaartDAO.setProductDAO(productDAO);
-            // Set the ReizigerDAO for OVChipkaartDAO
-
-//            testDAOs(reizigerDAO, ovChipkaartDAO, productDAO);
-
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
 
 
     }
 
     // Combined test for ReizigerDAO and OVChipkaartDAO
     public static void testDAOs(ReizigerDAO rdao, OVChipkaartDAO odao, ProductDAO pdao) throws SQLException {
-        //        pdao.delete(product);
-//        // ---- DELETE OPERATION ----
-//        System.out.print("\nReiziger verwijderen: ");
-//        if (rdao.delete(reiziger)) {
-//            System.out.println("Gelukt!");
-//        } else {
-//            System.out.println("Mislukt!");
-//        }
-//
-//        // Delete the OVChipkaart-Product relation
-//        System.out.print("\nRelatie tussen OVChipkaart en Product verwijderen: ");
-//        if (odao.delete(ovChipkaart)) {  // Assuming `deleteProductRelation` exists in `OVChipkaartDAO`
-//            System.out.println("Relatie verwijderd.");
-//        } else {
-//            System.out.println("Mislukt!");
-//        }
+
 
         // Test ReizigerDAO
         System.out.println("---- Test ReizigerDAO ----");
@@ -181,6 +166,8 @@ public class Main {
         ovChipkaart.addProduct(product);  // Set the bidirectional relationship
 
 
+
+
         System.out.print("Reiziger toevoegen: ");
         if (rdao.save(reiziger)) {
             System.out.println("Gelukt!");
@@ -243,21 +230,31 @@ public class Main {
         }
 
         // ---- DELETE OPERATION ----
-        System.out.print("\nReiziger verwijderen: ");
-        if (rdao.delete(reiziger)) {
-            System.out.println("Gelukt!");
-        } else {
-            System.out.println("Mislukt!");
+
+
+        // ---- DELETE PRODUCT-OVCHIPKAART ASSOCIATIONS ----
+        System.out.print("\nRelatie tussen OVChipkaart en Product verwijderen: ");
+        List<Product> products = new ArrayList<>(ovChipkaart.getProducts());
+        for (Product prd : products) {
+            ovChipkaart.removeProduct(prd);  // Break the relationship on the OVChipkaart side
+            prd.removeOVChipkaart(ovChipkaart);  // Break the relationship on the Product side
+            pdao.update(prd);  // Update the Product in the database to persist the removal
         }
 
-        // Delete the OVChipkaart-Product relation
-        System.out.print("\nRelatie tussen OVChipkaart en Product verwijderen: ");
-        if (odao.delete(ovChipkaart)) {  // Assuming `deleteProductRelation` exists in `OVChipkaartDAO`
-            System.out.println("Relatie verwijderd.");
+        // Delete Product
+        System.out.print("\nProduct verwijderen: ");
+        if (pdao.delete(product)) {
+            System.out.println("Product verwijderd.");
         } else {
-            System.out.println("Mislukt!");
+            System.out.println("Mislukt om Product te verwijderen.");
         }
-        pdao.delete(product);
+
+        System.out.print("\nReiziger verwijderen: ");
+        if (rdao.delete(reiziger)) {
+            System.out.println("Reiziger succesvol verwijderd.");
+        } else {
+            System.out.println("Mislukt om reiziger te verwijderen.");
+        }
     }
 
 }

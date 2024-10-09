@@ -22,7 +22,7 @@ public class Product {
     @Column(name = "prijs")
     private double prijs;
 
-    @ManyToMany(mappedBy = "producten")
+    @ManyToMany(mappedBy = "producten", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<OVChipkaart> ovChipkaarten = new ArrayList<>() ;
 
     public Product(int productNummer, String productNaam, String beschrijving, double prijs) {
